@@ -3,7 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas Personales</title>
+    <title>Mis Finanzas</title>
+    
+    <!-- Configuración PWA para instalación en Android / Móvil -->
+    <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
+    
+    <!-- Manifest dinámico embebido para que Android permita instalar la app -->
+    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{
+        "name": "Mis Finanzas Personales",
+        "short_name": "Finanzas",
+        "start_url": "./",
+        "display": "standalone",
+        "background_color": "#f8fafc",
+        "theme_color": "#16a34a",
+        "icons": [{
+            "src": "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }]
+    }'>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -187,6 +210,39 @@
             budgets: DEFAULT_BUDGETS,
             settings: { currency: '€' }
         };
+
+        // Registro de Service Worker para habilitar PWA en Android
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = "self.addEventListener('fetch', function(event) { event.respondWith(fetch(event.request)); });";
+                const blob = new Blob([swCode], { type: 'text/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW error', err));
+            });
+        }
+
+        // Variable para capturar el evento de instalación nativa de Android
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Mostrar indicador visual en Ajustes si está disponible
+            const installBtn = document.getElementById('install-pwa-btn');
+            if (installBtn) installBtn.classList.remove('hidden');
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const choiceResult = await deferredPrompt.userChoice;
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Usuario aceptó instalar la PWA');
+                }
+                deferredPrompt = null;
+            } else {
+                alert('Para instalar la app en tu móvil Android, abre el menú de opciones de tu navegador (los tres puntos arriba a la derecha) y selecciona "Instalar aplicación" o "Añadir a la pantalla de inicio".');
+            }
+        }
 
         function loadData() {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -588,6 +644,7 @@
             appState.recurring.push({
                 id: 'rec_' + Math.random().toString(36).substring(2, 9),
                 type: document.getElementById('rec-type').value,
+                concept: document.getElementById('rec-concept-input') ? document.getElementById('rec-concept-input').value : document.getElementById('rec-concept').value,
                 concept: document.getElementById('rec-concept').value,
                 amount: parseFloat(document.getElementById('rec-amount').value),
                 day: parseInt(document.getElementById('rec-day').value),
@@ -637,9 +694,18 @@
         // --- AJUSTES ---
         function renderSettingsHTML() {
             return `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                    <h3 class="font-bold text-sm">Opciones de Datos</h3>
-                    <button onclick="if(confirm('¿Borrar todos los datos y recargar?')){localStorage.clear(); location.reload();}" class="w-full bg-red-50 text-red-600 font-medium py-2.5 rounded-xl text-xs">Borrar todo y reiniciar app</button>
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                        <h3 class="font-bold text-sm text-slate-900">Instalar App en el Móvil</h3>
+                        <p class="text-xs text-slate-500">Instala esta aplicación en la pantalla de inicio de tu Android para abrirla como una app independiente sin barras de navegador.</p>
+                        <button id="install-pwa-btn" onclick="installPWA()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-xl text-xs transition shadow-sm flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-download"></i><span>Instalar Aplicación en Android</span>
+                        </button>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                        <h3 class="font-bold text-sm text-slate-900">Opciones de Datos</h3>
+                        <button onclick="if(confirm('¿Borrar todos los datos y reiniciar?')){localStorage.clear(); location.reload();}" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2.5 rounded-xl text-xs transition">Borrar todo y reiniciar app</button>
+                    </div>
                 </div>
             `;
         }
