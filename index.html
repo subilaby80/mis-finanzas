@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas Personales - App Web</title>
+    <title>Finanzas Personales</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -24,14 +24,14 @@
             }
         }
     </script>
-    <!-- FontAwesome para iconos limpios -->
+    <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js para estadísticas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="h-full bg-slate-50 text-slate-800 font-sans antialiased flex flex-col justify-between selection:bg-brand-500 selection:text-white">
 
-    <!-- HEADER / SUPERIOR -->
+    <!-- HEADER -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
         <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -59,15 +59,15 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <main id="main-content" class="flex-1 max-w-4xl w-full mx-auto p-4 pb-28 overflow-y-auto">
-        <!-- Las vistas se cargan dinámicamente aquí mediante JavaScript -->
+        <!-- Vistas dinámicas -->
     </main>
 
-    <!-- BOTÓN FLOTANTE RÁPIDO (+) -->
+    <!-- BOTÓN FLOTANTE (+) -->
     <button onclick="openTransactionModal()" class="fixed right-5 bottom-20 bg-brand-600 hover:bg-brand-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition transform hover:scale-105 active:scale-95 z-40 focus:outline-none" title="Añadir movimiento">
         <i class="fa-solid fa-plus"></i>
     </button>
 
-    <!-- NAVEGACIÓN INFERIOR (MOBILE-FIRST) -->
+    <!-- NAVEGACIÓN INFERIOR -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 shadow-lg">
         <div class="max-w-4xl mx-auto flex justify-around py-2 px-1">
             <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center flex-1 py-1 text-brand-600 transition">
@@ -97,7 +97,7 @@
         </div>
     </nav>
 
-    <!-- MODAL UNIFICADO PARA NUEVO / EDITAR MOVIMIENTO -->
+    <!-- MODAL MOVIMIENTO -->
     <div id="transaction-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
@@ -116,7 +116,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Concepto</label>
-                    <input type="text" id="tx-concept" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Ej. Supermercado, Nómina...">
+                    <input type="text" id="tx-concept" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Ej. Supermercado...">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -132,14 +132,12 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría</label>
-                    <select id="tx-category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                        <!-- Categorías dinámicas -->
-                    </select>
+                    <select id="tx-category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"></select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Notas (opcional)</label>
-                    <textarea id="tx-notes" rows="2" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Detalles adicionales..."></textarea>
+                    <textarea id="tx-notes" rows="2" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Detalles..."></textarea>
                 </div>
 
                 <div class="pt-2">
@@ -149,22 +147,13 @@
         </div>
     </div>
 
-    <!-- SCRIPT PRINCIPAL DE LA APLICACIÓN -->
+    <!-- SCRIPT -->
     <script>
-        // --- BASE DE DATOS INDEXEDDB ---
-        const DB_NAME = 'finanzas_personales_db';
-        const DB_VERSION = 1;
-        let db = null;
+        const STORAGE_KEY = 'mis_finanzas_app_data_v1';
 
         const DEFAULT_CATEGORIES = {
-            gasto: [
-                'Vivienda', 'Alimentación', 'Transporte', 'Coche', 'Combustible', 
-                'Seguros', 'Facturas', 'Suscripciones', 'Ocio', 'Compras', 
-                'Salud', 'Educación', 'Impuestos', 'Viajes', 'Otros'
-            ],
-            ingreso: [
-                'Nómina', 'Paga extra', 'Alquileres', 'Ventas', 'Devoluciones', 'Otros ingresos'
-            ]
+            gasto: ['Vivienda', 'Alimentación', 'Transporte', 'Coche', 'Combustible', 'Seguros', 'Facturas', 'Suscripciones', 'Ocio', 'Compras', 'Salud', 'Educación', 'Impuestos', 'Viajes', 'Otros'],
+            ingreso: ['Nómina', 'Paga extra', 'Alquileres', 'Ventas', 'Devoluciones', 'Otros ingresos']
         };
 
         const DEFAULT_BUDGETS = {
@@ -179,19 +168,19 @@
             transactions: [
                 { id: 't1', type: 'ingreso', concept: 'Nómina Empresa', amount: 2200, date: '2026-10-01', category: 'Nómina', notes: 'Mensual' },
                 { id: 't2', type: 'gasto', concept: 'Alquiler piso', amount: 700, date: '2026-10-02', category: 'Vivienda', notes: 'Cuota mensual' },
-                { id: 't3', type: 'gasto', concept: 'Supermercado Mercadona', amount: 125.50, date: '2026-10-03', category: 'Alimentación', notes: 'Compra semanal' },
-                { id: 't4', type: 'gasto', concept: 'Gasolina coche', amount: 60, date: '2026-10-05', category: 'Combustible', notes: 'Depósito lleno' },
-                { id: 't5', type: 'gasto', concept: 'Netflix & Spotify', amount: 24.98, date: '2026-10-06', category: 'Suscripciones', notes: 'Mensual' }
+                { id: 't3', type: 'gasto', concept: 'Supermercado', amount: 125.50, date: '2026-10-03', category: 'Alimentación', notes: 'Compra semanal' },
+                { id: 't4', type: 'gasto', concept: 'Gasolina', amount: 60, date: '2026-10-05', category: 'Combustible', notes: 'Depósito' },
+                { id: 't5', type: 'gasto', concept: 'Suscripciones', amount: 24.98, date: '2026-10-06', category: 'Suscripciones', notes: 'Mensual' }
             ],
             recurring: [
-                { id: 'r1', type: 'ingreso', concept: 'Nómina Principal', amount: 2200, category: 'Nómina', day: 1, startDate: '2025-01-01', periodicity: 'mensual', customInterval: 1, unit: 'meses', isFixed: true, notes: 'Salario neto' },
-                { id: 'r2', type: 'gasto', concept: 'Alquiler Vivienda', amount: 700, category: 'Vivienda', day: 2, startDate: '2025-01-01', periodicity: 'mensual', customInterval: 1, unit: 'meses', isFixed: true, notes: 'Alquiler fijo' },
-                { id: 'r3', type: 'gasto', concept: 'Seguro del Coche', amount: 600, category: 'Seguros', day: 15, startDate: '2026-01-15', periodicity: 'anual', customInterval: 12, unit: 'meses', isFixed: true, notes: 'Prorrateable 50€/mes' },
-                { id: 'r4', type: 'gasto', concept: 'Factura Luz Trimestral', amount: 300, category: 'Facturas', day: 20, startDate: '2026-01-20', periodicity: 'trimestral', customInterval: 3, unit: 'meses', isFixed: false, notes: 'Prorrateable 100€/mes' }
+                { id: 'r1', type: 'ingreso', concept: 'Nómina Principal', amount: 2200, category: 'Nómina', day: 1, startDate: '2025-01-01', periodicity: 'mensual', notes: 'Salario' },
+                { id: 'r2', type: 'gasto', concept: 'Alquiler Vivienda', amount: 700, category: 'Vivienda', day: 2, startDate: '2025-01-01', periodicity: 'mensual', notes: 'Alquiler' },
+                { id: 'r3', type: 'gasto', concept: 'Seguro del Coche', amount: 600, category: 'Seguros', day: 15, startDate: '2026-01-15', periodicity: 'anual', notes: 'Prorrateable 50€/mes' },
+                { id: 'r4', type: 'gasto', concept: 'Factura Luz', amount: 300, category: 'Facturas', day: 20, startDate: '2026-01-20', periodicity: 'trimestral', notes: 'Prorrateable 100€/mes' }
             ],
             categories: DEFAULT_CATEGORIES,
             budgets: DEFAULT_BUDGETS,
-            settings: { currency: '€', firstDay: 1 }
+            settings: { currency: '€' }
         };
 
         let appState = {
@@ -201,77 +190,46 @@
             recurring: [],
             categories: DEFAULT_CATEGORIES,
             budgets: DEFAULT_BUDGETS,
-            settings: { currency: '€', firstDay: 1 }
+            settings: { currency: '€' }
         };
 
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-                request.onupgradeneeded = (event) => {
-                    const database = event.target.result;
-                    if (!database.objectStoreNames.contains('store')) {
-                        database.createObjectStore('store', { keyPath: 'key' });
-                    }
-                };
-            });
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState.transactions = parsed.transactions || INITIAL_DEMO_DATA.transactions;
+                    appState.recurring = parsed.recurring || INITIAL_DEMO_DATA.recurring;
+                    appState.categories = parsed.categories || DEFAULT_CATEGORIES;
+                    appState.budgets = parsed.budgets || DEFAULT_BUDGETS;
+                    appState.settings = parsed.settings || { currency: '€' };
+                } catch (e) {
+                    appState.transactions = INITIAL_DEMO_DATA.transactions;
+                    appState.recurring = INITIAL_DEMO_DATA.recurring;
+                }
+            } else {
+                appState.transactions = INITIAL_DEMO_DATA.transactions;
+                appState.recurring = INITIAL_DEMO_DATA.recurring;
+                appState.categories = INITIAL_DEMO_DATA.categories;
+                appState.budgets = INITIAL_DEMO_DATA.budgets;
+                saveData();
+            }
         }
 
-        async function saveToDB() {
-            if (!db) return;
-            const tx = db.transaction('store', 'readwrite');
-            const store = tx.objectStore('store');
-            await store.put({ key: 'data', value: {
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
                 transactions: appState.transactions,
                 recurring: appState.recurring,
                 categories: appState.categories,
                 budgets: appState.budgets,
                 settings: appState.settings
-            }});
+            }));
         }
 
-        async function loadFromDB() {
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction('store', 'readonly');
-                const store = tx.objectStore('store');
-                const request = store.get('data');
-                request.onsuccess = () => {
-                    if (request.result) {
-                        const d = request.result.value;
-                        appState.transactions = d.transactions || [];
-                        appState.recurring = d.recurring || [];
-                        appState.categories = d.categories || DEFAULT_CATEGORIES;
-                        appState.budgets = d.budgets || DEFAULT_BUDGETS;
-                        appState.settings = d.settings || { currency: '€', firstDay: 1 };
-                        resolve(true);
-                    } else {
-                        // Cargar datos demo iniciales
-                        appState.transactions = INITIAL_DEMO_DATA.transactions;
-                        appState.recurring = INITIAL_DEMO_DATA.recurring;
-                        appState.categories = INITIAL_DEMO_DATA.categories;
-                        appState.budgets = INITIAL_DEMO_DATA.budgets;
-                        appState.settings = INITIAL_DEMO_DATA.settings;
-                        saveToDB().then(() => resolve(true));
-                    }
-                };
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        // --- INICIALIZACIÓN Y NAVEGACIÓN ---
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                await initDB();
-                await loadFromDB();
-                checkAndGenerateRecurring();
-                renderView();
-            } catch (e) {
-                console.error("Error inicializando IndexedDB:", e);
-            }
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            checkAndGenerateRecurring();
+            renderView();
         });
 
         function switchTab(tab) {
@@ -329,45 +287,36 @@
 
         function updateMonthDisplay() {
             const options = { month: 'long', year: 'numeric' };
-            const formatted = appState.currentDate.toLocaleDateString('es-ES', options);
-            document.getElementById('current-month-display').textContent = formatted;
+            document.getElementById('current-month-display').textContent = appState.currentDate.toLocaleDateString('es-ES', options);
         }
 
-        // --- GENERACIÓN AUTOMÁTICA DE RECURRENTES ---
         function checkAndGenerateRecurring() {
-            // Genera automáticamente los movimientos recurrentes para el mes actual y anterior si no existen
             const curYear = appState.currentDate.getFullYear();
             const curMonth = appState.currentDate.getMonth();
 
             appState.recurring.forEach(rec => {
-                const startDate = new Date(rec.startDate);
-                let targetDate = new Date(curYear, curMonth, rec.day || 1);
-                
-                if (targetDate >= startDate) {
-                    const dateStr = targetDate.toISOString().split('T')[0];
-                    // Comprobar si ya existe un movimiento con el mismo concepto y fecha aproximada o ID recurrente
-                    const exists = appState.transactions.some(t => 
-                        t.concept === rec.concept && 
-                        t.date.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`)
-                    );
+                const targetDate = new Date(curYear, curMonth, rec.day || 1);
+                const dateStr = targetDate.toISOString().split('T')[0];
+                const exists = appState.transactions.some(t => 
+                    t.concept === rec.concept && 
+                    t.date.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`)
+                );
 
-                    if (!exists) {
-                        appState.transactions.push({
-                            id: 'auto_' + Math.random().toString(36.substring(2, 9)),
-                            type: rec.type,
-                            concept: rec.concept,
-                            amount: rec.amount,
-                            date: dateStr,
-                            category: rec.category,
-                            notes: `Generado automáticamente (${rec.notes || ''})`
-                        });
-                    }
+                if (!exists && targetDate >= new Date(rec.startDate)) {
+                    appState.transactions.push({
+                        id: 'auto_' + Math.random().toString(36).substring(2, 9),
+                        type: rec.type,
+                        concept: rec.concept,
+                        amount: rec.amount,
+                        date: dateStr,
+                        category: rec.category,
+                        notes: `Generado automáticamente`
+                    });
                 }
             });
-            saveToDB();
+            saveData();
         }
 
-        // --- CÁLCULOS FINANCIEROS Y PRORRATEO ---
         function getFilteredTransactionsForMonth(year, month) {
             return appState.transactions.filter(t => {
                 const d = new Date(t.date);
@@ -377,135 +326,62 @@
 
         function calculateMonthlyFinancials(year, month) {
             const txs = getFilteredTransactionsForMonth(year, month);
-            let income = 0;
-            let expense = 0;
-
+            let income = 0, expense = 0;
             txs.forEach(t => {
                 if (t.type === 'ingreso') income += t.amount;
                 else if (t.type === 'gasto') expense += t.amount;
             });
 
-            const balance = income - expense;
-            const savingsRate = income > 0 ? Math.max(0, (balance / income) * 100) : 0;
-
-            // Cálculo de Prorrateo para gastos futuros no mensuales
             let monthlyProratedReserve = 0;
             appState.recurring.forEach(r => {
                 if (r.type === 'gasto') {
-                    let monthlyEquivalent = 0;
-                    if (r.periodicity === 'anual') monthlyEquivalent = r.amount / 12;
-                    else if (r.periodicity === 'trimestral') monthlyEquivalent = r.amount / 3;
-                    else if (r.periodicity === 'bimestral' || r.periodicity === 'cada 2 meses') monthlyEquivalent = r.amount / 2;
-                    else if (r.periodicity === 'semestral') monthlyEquivalent = r.amount / 6;
-                    else if (r.periodicity === 'semanal') monthlyEquivalent = r.amount * 4.33;
-                    else if (r.periodicity === 'personalizada') {
-                        const interval = r.customInterval || 1;
-                        if (r.unit === 'meses') monthlyEquivalent = r.amount / interval;
-                        else if (r.unit === 'semanas') monthlyEquivalent = (r.amount * 4.33) / interval;
-                    }
-                    if (monthlyEquivalent > 0) {
-                        monthlyProratedReserve += monthlyEquivalent;
-                    }
+                    let eq = 0;
+                    if (r.periodicity === 'anual') eq = r.amount / 12;
+                    else if (r.periodicity === 'trimestral') eq = r.amount / 3;
+                    else if (r.periodicity === 'mensual') eq = 0; // Mensual no requiere reserva extra de prorrateo diferido
+                    if (eq > 0) monthlyProratedReserve += eq;
                 }
             });
 
+            const balance = income - expense;
+            const savings = balance > 0 ? balance : 0;
+            const savingsRate = income > 0 ? Math.max(0, (balance / income) * 100) : 0;
             const availableMoney = income - expense - monthlyProratedReserve;
 
-            return {
-                income,
-                expense,
-                balance,
-                savings: balance > 0 ? balance : 0,
-                savingsRate,
-                monthlyProratedReserve,
-                availableMoney
-            };
+            return { income, expense, balance, savings, savingsRate, monthlyProratedReserve, availableMoney };
         }
 
-        // --- VISTA 1: DASHBOARD ---
+        // --- DASHBOARD ---
         function renderDashboardHTML() {
             const year = appState.currentDate.getFullYear();
             const month = appState.currentDate.getMonth();
-            const currentFin = calculateMonthlyFinancials(year, month);
-
-            // Mes anterior para comparación
-            const prevDate = new Date(year, month - 1, 1);
-            const prevFin = calculateMonthlyFinancials(prevDate.getFullYear(), prevDate.getMonth());
-            const diffBalance = currentFin.balance - prevFin.balance;
+            const fin = calculateMonthlyFinancials(year, month);
+            const prevFin = calculateMonthlyFinancials(new Date(year, month - 1, 1).getFullYear(), new Date(year, month - 1, 1).getMonth());
+            const diff = fin.balance - prevFin.balance;
 
             return `
                 <div class="space-y-4">
-                    <!-- Tarjeta Principal de Balance -->
                     <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-                        <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl"></div>
                         <p class="text-xs uppercase tracking-wider text-slate-400 font-medium">Balance del Mes</p>
-                        <h2 class="text-3xl font-bold mt-1 ${currentFin.balance >= 0 ? 'text-white' : 'text-red-400'}">
-                            ${currentFin.balance.toFixed(2)} ${appState.settings.currency}
-                        </h2>
+                        <h2 class="text-3xl font-bold mt-1 ${fin.balance >= 0 ? 'text-white' : 'text-red-400'}">${fin.balance.toFixed(2)} ${appState.settings.currency}</h2>
                         <div class="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <span class="text-xs text-slate-400 block">Dinero Disponible</span>
-                                <span class="font-semibold text-emerald-400 text-base">${currentFin.availableMoney.toFixed(2)} ${appState.settings.currency}</span>
-                            </div>
-                            <div>
-                                <span class="text-xs text-slate-400 block">Reserva Prorrateo</span>
-                                <span class="font-semibold text-amber-400 text-base">${currentFin.monthlyProratedReserve.toFixed(2)} ${appState.settings.currency}</span>
-                            </div>
+                            <div><span class="text-xs text-slate-400 block">Disponible Real</span><span class="font-semibold text-emerald-400 text-base">${fin.availableMoney.toFixed(2)} ${appState.settings.currency}</span></div>
+                            <div><span class="text-xs text-slate-400 block">Reserva Prorrateo</span><span class="font-semibold text-amber-400 text-base">${fin.monthlyProratedReserve.toFixed(2)} ${appState.settings.currency}</span></div>
                         </div>
                     </div>
-
-                    <!-- Cuadrícula de Métricas Clave -->
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="flex items-center space-x-2 text-emerald-600 mb-1">
-                                <i class="fa-solid fa-arrow-trend-up text-sm"></i>
-                                <span class="text-xs font-semibold uppercase">Ingresos</span>
-                            </div>
-                            <p class="text-xl font-bold text-slate-900">+${currentFin.income.toFixed(2)} ${appState.settings.currency}</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="flex items-center space-x-2 text-red-500 mb-1">
-                                <i class="fa-solid fa-arrow-trend-down text-sm"></i>
-                                <span class="text-xs font-semibold uppercase">Gastos</span>
-                            </div>
-                            <p class="text-xl font-bold text-slate-900">-${currentFin.expense.toFixed(2)} ${appState.settings.currency}</p>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="flex items-center space-x-2 text-blue-600 mb-1">
-                                <i class="fa-solid fa-piggy-bank text-sm"></i>
-                                <span class="text-xs font-semibold uppercase">Ahorro</span>
-                            </div>
-                            <p class="text-xl font-bold text-slate-900">${currentFin.savings.toFixed(2)} ${appState.settings.currency}</p>
-                            <span class="text-[10px] text-slate-500">${currentFin.savingsRate.toFixed(1)}% tasa de ahorro</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="flex items-center space-x-2 text-purple-600 mb-1">
-                                <i class="fa-solid fa-chart-line text-sm"></i>
-                                <span class="text-xs font-semibold uppercase">Vs. Mes Ant.</span>
-                            </div>
-                            <p class="text-xl font-bold ${diffBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}">
-                                ${diffBalance >= 0 ? '+' : ''}${diffBalance.toFixed(2)} ${appState.settings.currency}
-                            </p>
-                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-emerald-600 text-xs font-semibold mb-1"><i class="fa-solid fa-arrow-trend-up"></i> INGRESOS</div><p class="text-xl font-bold">+${fin.income.toFixed(2)} ${appState.settings.currency}</p></div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-red-500 text-xs font-semibold mb-1"><i class="fa-solid fa-arrow-trend-down"></i> GASTOS</div><p class="text-xl font-bold">-${fin.expense.toFixed(2)} ${appState.settings.currency}</p></div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-blue-600 text-xs font-semibold mb-1"><i class="fa-solid fa-piggy-bank"></i> AHORRO</div><p class="text-xl font-bold">${fin.savings.toFixed(2)} ${appState.settings.currency}</p><span class="text-[10px] text-slate-500">${fin.savingsRate.toFixed(1)}% tasa</span></div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-purple-600 text-xs font-semibold mb-1"><i class="fa-solid fa-chart-line"></i> VS MES ANT.</div><p class="text-xl font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}">${diff >= 0 ? '+' : ''}${diff.toFixed(2)}</p></div>
                     </div>
-
-                    <!-- Presupuestos Rápidos -->
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center justify-between">
-                            <span>Presupuestos Principales</span>
-                            <button onclick="switchTab('settings')" class="text-xs text-brand-600 hover:underline">Gestionar</button>
-                        </h3>
-                        <div class="space-y-3">
-                            ${renderBudgetsProgress(year, month)}
-                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm mb-3">Presupuestos por Categoría</h3>
+                        <div class="space-y-3">${renderBudgetsProgress(year, month)}</div>
                     </div>
-
-                    <!-- Gráfico Rápido Dashboard -->
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                         <h3 class="font-bold text-slate-900 text-sm mb-3">Distribución de Gastos</h3>
-                        <div class="h-48 flex items-center justify-center">
-                            <canvas id="dashboardChart"></canvas>
-                        </div>
+                        <div class="h-48 flex items-center justify-center"><canvas id="dashboardChart"></canvas></div>
                     </div>
                 </div>
             `;
@@ -513,154 +389,61 @@
 
         function renderBudgetsProgress(year, month) {
             const txs = getFilteredTransactionsForMonth(year, month);
-            const categoryExpenses = {};
-            txs.filter(t => t.type === 'gasto').forEach(t => {
-                categoryExpenses[t.category] = (categoryExpenses[t.category] || 0) + t.amount;
-            });
-
-            let html = '';
-            const entries = Object.entries(appState.budgets);
-            if (entries.length === 0) return '<p class="text-xs text-slate-400">No hay presupuestos configurados.</p>';
-
-            entries.forEach(([cat, limit]) => {
-                const spent = categoryExpenses[cat] || 0;
+            const spentMap = {};
+            txs.filter(t => t.type === 'gasto').forEach(t => spentMap[t.category] = (spentMap[t.category] || 0) + t.amount);
+            
+            return Object.entries(appState.budgets).map(([cat, limit]) => {
+                const spent = spentMap[cat] || 0;
                 const pct = Math.min(100, (spent / limit) * 100);
-                let barColor = 'bg-brand-500';
-                if (pct > 85) barColor = 'bg-amber-500';
-                if (pct >= 100) barColor = 'bg-red-500';
-
-                html += `
+                const color = pct >= 100 ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-brand-500';
+                return `
                     <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="font-medium text-slate-700">${cat}</span>
-                            <span class="text-slate-500">${spent.toFixed(2)} / ${limit} ${appState.settings.currency} (${pct.toFixed(0)}%)</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                        </div>
+                        <div class="flex justify-between text-xs mb-1"><span class="font-medium">${cat}</span><span class="text-slate-500">${spent.toFixed(2)} / ${limit} ${appState.settings.currency}</span></div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="${color} h-2 rounded-full transition-all" style="width: ${pct}%"></div></div>
                     </div>
                 `;
-            });
-            return html;
+            }).join('');
         }
 
         function initDashboardCharts() {
-            const year = appState.currentDate.getFullYear();
-            const month = appState.currentDate.getMonth();
-            const txs = getFilteredTransactionsForMonth(year, month).filter(t => t.type === 'gasto');
-            
-            const catTotals = {};
-            txs.forEach(t => {
-                catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
-            });
-
             const ctx = document.getElementById('dashboardChart');
             if (!ctx) return;
-
-            const labels = Object.keys(catTotals);
-            const data = Object.values(catTotals);
-
-            if (labels.length === 0) {
-                ctx.parentElement.innerHTML = '<p class="text-xs text-slate-400">Sin gastos este mes.</p>';
-                return;
-            }
-
+            const txs = getFilteredTransactionsForMonth(appState.currentDate.getFullYear(), appState.currentDate.getMonth()).filter(t => t.type === 'gasto');
+            const dataMap = {};
+            txs.forEach(t => dataMap[t.category] = (dataMap[t.category] || 0) + t.amount);
+            if (Object.keys(dataMap).length === 0) { ctx.parentElement.innerHTML = '<p class="text-xs text-slate-400">Sin gastos este mes.</p>'; return; }
             new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: ['#16a34a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
-                    }
-                }
+                data: { labels: Object.keys(dataMap), datasets: [{ data: Object.values(dataMap), backgroundColor: ['#16a34a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
             });
         }
 
-        // --- VISTA 2: MOVIMIENTOS ---
-        let txSearchQuery = '';
-        let txFilterType = 'todos';
-        let txSortBy = 'date-desc';
-
+        // --- MOVIMIENTOS ---
+        let txFilter = 'todos';
         function renderTransactionsHTML() {
-            const year = appState.currentDate.getFullYear();
-            const month = appState.currentDate.getMonth();
-            let txs = getFilteredTransactionsForMonth(year, month);
-
-            // Filtrar
-            if (txFilterType !== 'todos') {
-                txs = txs.filter(t => t.type === txFilterType);
-            }
-            if (txSearchQuery.trim() !== '') {
-                const q = txSearchQuery.toLowerCase();
-                txs = txs.filter(t => t.concept.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || (t.notes && t.notes.toLowerCase().includes(q)));
-            }
-
-            // Ordenar
-            txs.sort((a, b) => {
-                if (txSortBy === 'date-desc') return new Date(b.date) - new Date(a.date);
-                if (txSortBy === 'date-asc') return new Date(a.date) - new Date(b.date);
-                if (txSortBy === 'amount-desc') return b.amount - a.amount;
-                if (txSortBy === 'amount-asc') return a.amount - b.amount;
-                if (txSortBy === 'category') return a.category.localeCompare(b.category);
-                return 0;
-            });
-
+            const txs = getFilteredTransactionsForMonth(appState.currentDate.getFullYear(), appState.currentDate.getMonth())
+                .filter(t => txFilter === 'todos' || t.type === txFilter);
             return `
                 <div class="space-y-4">
-                    <!-- Barra de Buscador y Filtros -->
-                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                        <div class="relative">
-                            <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-                            <input type="text" id="tx-search-input" value="${txSearchQuery}" oninput="handleTxSearch(this.value)" placeholder="Buscar movimientos..." class="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        </div>
-                        <div class="flex flex-wrap gap-2 items-center justify-between text-xs">
-                            <div class="flex gap-1">
-                                <button onclick="setTxFilter('todos')" class="px-3 py-1.5 rounded-lg font-medium transition ${txFilterType === 'todos' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}">Todos</button>
-                                <button onclick="setTxFilter('ingreso')" class="px-3 py-1.5 rounded-lg font-medium transition ${txFilterType === 'ingreso' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}">Ingresos</button>
-                                <button onclick="setTxFilter('gasto')" class="px-3 py-1.5 rounded-lg font-medium transition ${txFilterType === 'gasto' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600'}">Gastos</button>
-                            </div>
-                            <select onchange="setTxSort(this.value)" class="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none">
-                                <option value="date-desc" ${txSortBy === 'date-desc' ? 'selected' : ''}>Más recientes</option>
-                                <option value="date-asc" ${txSortBy === 'date-asc' ? 'selected' : ''}>Más antiguos</option>
-                                <option value="amount-desc" ${txSortBy === 'amount-desc' ? 'selected' : ''}>Mayor importe</option>
-                                <option value="amount-asc" ${txSortBy === 'amount-asc' ? 'selected' : ''}>Menor importe</option>
-                                <option value="category" ${txSortBy === 'category' ? 'selected' : ''}>Categoría</option>
-                            </select>
-                        </div>
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex gap-2">
+                        <button onclick="setTxFilter('todos')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${txFilter === 'todos' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}">Todos</button>
+                        <button onclick="setTxFilter('ingreso')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${txFilter === 'ingreso' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}">Ingresos</button>
+                        <button onclick="setTxFilter('gasto')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${txFilter === 'gasto' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600'}">Gastos</button>
                     </div>
-
-                    <!-- Lista de Movimientos -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden divide-y divide-slate-100">
-                        ${txs.length === 0 ? '<div class="p-8 text-center text-slate-400 text-sm">No se encontraron movimientos.</div>' : txs.map(t => `
-                            <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100">
+                        ${txs.length === 0 ? '<div class="p-8 text-center text-slate-400 text-sm">No hay movimientos.</div>' : txs.map(t => `
+                            <div class="p-3.5 flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${t.type === 'ingreso' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'}">
-                                        <i class="fa-solid ${t.type === 'ingreso' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
-                                    </div>
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${t.type === 'ingreso' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'}"><i class="fa-solid ${t.type === 'ingreso' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i></div>
                                     <div>
-                                        <h4 class="font-bold text-slate-900 text-sm">${t.concept}</h4>
-                                        <div class="flex items-center space-x-2 text-xs text-slate-400">
-                                            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">${t.category}</span>
-                                            <span>${t.date}</span>${t.notes ? `<span class="italic truncate max-w-[120px]">• ${t.notes}</span>` : ''}
-                                        </div>
+                                        <h4 class="font-bold text-sm">${t.concept}</h4>
+                                        <p class="text-xs text-slate-400"><span class="bg-slate-100 px-1.5 py-0.5 rounded">${t.category}</span> •${t.date}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-3">
-                                    <span class="font-bold text-sm ${t.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">
-                                        ${t.type === 'ingreso' ? '+' : '-'}${t.amount.toFixed(2)}${appState.settings.currency}
-                                    </span>
-                                    <div class="flex items-center space-x-1">
-                                        <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-blue-600 transition" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
-                                        <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-red-500 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
-                                    </div>
+                                    <span class="font-bold text-sm ${t.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">${t.type === 'ingreso' ? '+' : '-'}${t.amount.toFixed(2)}${appState.settings.currency}</span>
+                                    <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
                                 </div>
                             </div>
                         `).join('')}
@@ -669,501 +452,95 @@
             `;
         }
 
-        function handleTxSearch(val) {
-            txSearchQuery = val;
-            const container = document.getElementById('main-content');
-            // Re-renderizado parcial o completo eficiente
-            const listContainer = container.querySelector('.divide-y');
-            if (listContainer) {
-                // Actualizar lista sin perder foco del input
-                const year = appState.currentDate.getFullYear();
-                const month = appState.currentDate.getMonth();
-                let txs = getFilteredTransactionsForMonth(year, month);
-                if (txFilterType !== 'todos') txs = txs.filter(t => t.type === txFilterType);
-                if (val.trim() !== '') {
-                    const q = val.toLowerCase();
-                    txs = txs.filter(t => t.concept.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
-                }
-                // Ordenar
-                txs.sort((a, b) => new Date(b.date) - new Date(a.date));
-                listContainer.innerHTML = txs.length === 0 ? '<div class="p-8 text-center text-slate-400 text-sm">No se encontraron movimientos.</div>' : txs.map(t => `
-                    <div class="p-3.5 flex items-center justify-between hover:bg-slate-50 transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${t.type === 'ingreso' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'}">
-                                <i class="fa-solid ${t.type === 'ingreso' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 text-sm">${t.concept}</h4>
-                                <div class="flex items-center space-x-2 text-xs text-slate-400">
-                                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">${t.category}</span>
-                                    <span>${t.date}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="font-bold text-sm ${t.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">
-                                ${t.type === 'ingreso' ? '+' : '-'}${t.amount.toFixed(2)} ${appState.settings.currency}
-                            </span>
-                            <div class="flex items-center space-x-1">
-                                <button onclick="editTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-red-500 transition"><i class="fa-solid fa-trash text-xs"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            }
+        function setTxFilter(f) { txFilter = f; renderView(); }
+
+        function openTransactionModal() {
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            setTxType('gasto');
         }
 
-        function setTxFilter(type) {
-            txFilterType = type;
-            renderView();
-        }
-
-        function setTxSort(sort) {
-            txSortBy = sort;
-            renderView();
-        }
-
-        // --- GESTIÓN DE MODAL DE MOVIMIENTOS ---
-        function openTransactionModal(editId = null) {
-            const modal = document.getElementById('transaction-modal');
-            modal.classList.remove('hidden');
-            
-            if (editId) {
-                document.getElementById('modal-title').textContent = 'Editar Movimiento';
-                const t = appState.transactions.find(x => x.id === editId);
-                if (t) {
-                    document.getElementById('tx-id').value = t.id;
-                    setTxType(t.type);
-                    document.getElementById('tx-concept').value = t.concept;
-                    document.getElementById('tx-amount').value = t.amount;
-                    document.getElementById('tx-date').value = t.date;
-                    populateCategories(t.type, t.category);
-                    document.getElementById('tx-notes').value = t.notes || '';
-                }
-            } else {
-                document.getElementById('modal-title').textContent = 'Nuevo Movimiento';
-                document.getElementById('tx-id').value = '';
-                setTxType('gasto');
-                document.getElementById('tx-concept').value = '';
-                document.getElementById('tx-amount').value = '';
-                const todayStr = appState.currentDate.toISOString().split('T')[0];
-                document.getElementById('tx-date').value = todayStr;
-                populateCategories('gasto');
-                document.getElementById('tx-notes').value = '';
-            }
-        }
-
-        function closeTransactionModal() {
-            document.getElementById('transaction-modal').classList.add('hidden');
-        }
+        function closeTransactionModal() { document.getElementById('transaction-modal').classList.add('hidden'); }
 
         function setTxType(type) {
             document.getElementById('tx-type').value = type;
-            const expBtn = document.getElementById('type-expense-btn');
-            const incBtn = document.getElementById('type-income-btn');
-            if (type === 'gasto') {
-                expBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs';
-                incBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
-            } else {
-                incBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-emerald-600 shadow-xs';
-                expBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
-            }
-            populateCategories(type);
-        }
-
-        function populateCategories(type, selected = null) {
-            const select = document.getElementById('tx-category');
-            const cats = appState.categories[type] || [];
-            select.innerHTML = cats.map(c => `<option value="${c}" ${selected === c ? 'selected' : ''}>${c}</option>`).join('');
+            document.getElementById('type-expense-btn').className = type === 'gasto' ? 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs' : 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
+            document.getElementById('type-income-btn').className = type === 'ingreso' ? 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-emerald-600 shadow-xs' : 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
+            document.getElementById('tx-category').innerHTML = (appState.categories[type] || []).map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function saveTransaction(e) {
             e.preventDefault();
-            const id = document.getElementById('tx-id').value;
-            const type = document.getElementById('tx-type').value;
-            const concept = document.getElementById('tx-concept').value;
-            const amount = parseFloat(document.getElementById('tx-amount').value);
-            const date = document.getElementById('tx-date').value;
-            const category = document.getElementById('tx-category').value;
-            const notes = document.getElementById('tx-notes').value;
-
-            if (id) {
-                const idx = appState.transactions.findIndex(t => t.id === id);
-                if (idx !== -1) {
-                    appState.transactions[idx] = { id, type, concept, amount, date, category, notes };
-                }
-            } else {
-                const newTx = {
-                    id: 'tx_' + Math.random().toString(36).substring(2, 9),
-                    type, concept, amount, date, category, notes
-                };
-                appState.transactions.push(newTx);
-            }
-
-            saveToDB();
+            appState.transactions.push({
+                id: 'tx_' + Math.random().toString(36).substring(2, 9),
+                type: document.getElementById('tx-type').value,
+                concept: document.getElementById('tx-concept').value,
+                amount: parseFloat(document.getElementById('tx-amount').value),
+                date: document.getElementById('tx-date').value,
+                category: document.getElementById('tx-category').value,
+                notes: document.getElementById('tx-notes').value
+            });
+            saveData();
             closeTransactionModal();
             renderView();
         }
 
-        function editTransaction(id) {
-            openTransactionModal(id);
-        }
-
         function deleteTransaction(id) {
-            if (confirm('¿Estás seguro de eliminar este movimiento?')) {
+            if (confirm('¿Eliminar movimiento?')) {
                 appState.transactions = appState.transactions.filter(t => t.id !== id);
-                saveToDB();
+                saveData();
                 renderView();
             }
         }
 
-        // --- VISTA 3: RECURRENTES ---
+        // --- RECURRENTES ---
         function renderRecurringHTML() {
             return `
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Ingresos y Gastos Recurrentes</h3>
-                            <p class="text-xs text-slate-500">Automatiza tus cuotas fijas y prorrateos</p>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100">
+                    ${appState.recurring.map(r => `
+                        <div class="p-4 flex items-center justify-between">
+                            <div><h4 class="font-bold text-sm">${r.concept}</h4><p class="text-xs text-slate-400">Día ${r.day} •${r.periodicity} • <span class="text-slate-600">${r.category}</span></p></div>
+                            <span class="font-bold text-sm ${r.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">${r.type === 'ingreso' ? '+' : '-'}${r.amount.toFixed(2)}${appState.settings.currency}</span>
                         </div>
-                        <button onclick="openRecurringModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-xs">
-                            <i class="fa-solid fa-plus mr-1"></i> Nuevo recurrente
-                        </button>
-                    </div>
-
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden divide-y divide-slate-100">
-                        ${appState.recurring.length === 0 ? '<div class="p-8 text-center text-slate-400 text-sm">No hay elementos recurrentes configurados.</div>' : appState.recurring.map(r => `
-                            <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${r.type === 'ingreso' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'}">
-                                        <i class="fa-solid fa-repeat"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-900 text-sm">${r.concept}</h4>
-                                        <div class="flex items-center space-x-2 text-xs text-slate-400 mt-0.5">
-                                            <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">${r.category}</span>
-                                            <span class="capitalize">Día ${r.day} • ${r.periodicity}</span>${r.notes ? `<span>• ${r.notes}</span>` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <span class="font-bold text-sm ${r.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">
-                                        ${r.type === 'ingreso' ? '+' : '-'}${r.amount.toFixed(2)}${appState.settings.currency}
-                                    </span>
-                                    <div class="flex items-center space-x-1">
-                                        <button onclick="deleteRecurring('${r.id}')" class="p-1.5 text-slate-400 hover:text-red-500 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- MODAL RECURRENTE -->
-                <div id="recurring-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-                    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-                        <div class="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                            <h3 class="font-bold text-slate-900 text-lg">Nuevo Elemento Recurrente</h3>
-                            <button onclick="closeRecurringModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg"><i class="fa-solid fa-xmark text-xl"></i></button>
-                        </div>
-                        <form onsubmit="saveRecurring(event)" class="p-4 space-y-4 flex-1">
-                            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-                                <button type="button" id="rec-type-gasto" onclick="setRecType('gasto')" class="py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs">Gasto Fijo</button>
-                                <button type="button" id="rec-type-ingreso" onclick="setRecType('ingreso')" class="py-2.5 rounded-lg font-medium text-sm transition text-slate-600">Ingreso Fijo</button>
-                            </div>
-                            <input type="hidden" id="rec-type" value="gasto">
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Concepto</label>
-                                <input type="text" id="rec-concept" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Ej. Seguro Coche, Netflix...">
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Importe (€)</label>
-                                    <input type="number" step="0.01" id="rec-amount" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0.00">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Día habitual de cobro/pago</label>
-                                    <input type="number" min="1" max="31" id="rec-day" value="1" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría</label>
-                                    <select id="rec-category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Periodicidad</label>
-                                    <select id="rec-periodicity" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                                        <option value="semanal">Semanal</option>
-                                        <option value="mensual" selected>Mensual</option>
-                                        <option value="bimestral">Bimestral</option>
-                                        <option value="trimestral">Trimestral</option>
-                                        <option value="cuatrimestral">Cuatrimestral</option>
-                                        <option value="semestral">Semestral</option>
-                                        <option value="anual">Anual</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha de inicio</label>
-                                <input type="date" id="rec-start" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Notas / Prorrateo (opcional)</label>
-                                <input type="text" id="rec-notes" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Ej. Prorrateable anual">
-                            </div>
-
-                            <div class="pt-2">
-                                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition shadow-md">Guardar Recurrente</button>
-                            </div>
-                        </form>
-                    </div>
+                    `).join('')}
                 </div>
             `;
         }
 
-        function openRecurringModal() {
-            document.getElementById('recurring-modal').classList.remove('hidden');
-            document.getElementById('rec-start').value = new Date().toISOString().split('T')[0];
-            setRecType('gasto');
-        }
-
-        function closeRecurringModal() {
-            document.getElementById('recurring-modal').classList.add('hidden');
-        }
-
-        function setRecType(type) {
-            document.getElementById('rec-type').value = type;
-            const expBtn = document.getElementById('rec-type-gasto');
-            const incBtn = document.getElementById('rec-type-ingreso');
-            if (type === 'gasto') {
-                expBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs';
-                incBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
-            } else {
-                incBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-emerald-600 shadow-xs';
-                expBtn.className = 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
-            }
-            const select = document.getElementById('rec-category');
-            const cats = appState.categories[type] || [];
-            select.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-
-        function saveRecurring(e) {
-            e.preventDefault();
-            const newRec = {
-                id: 'rec_' + Math.random().toString(36).substring(2, 9),
-                type: document.getElementById('rec-type').value,
-                concept: document.getElementById('rec-concept').value,
-                amount: parseFloat(document.getElementById('rec-amount').value),
-                day: parseInt(document.getElementById('rec-day').value),
-                category: document.getElementById('rec-category').value,
-                periodicity: document.getElementById('rec-periodicity').value,
-                startDate: document.getElementById('rec-start').value,
-                notes: document.getElementById('rec-notes').value
-            };
-
-            appState.recurring.push(newRec);
-            saveToDB();
-            closeRecurringModal();
-            checkAndGenerateRecurring();
-            renderView();
-        }
-
-        function deleteRecurring(id) {
-            if (confirm('¿Eliminar este elemento recurrente?')) {
-                appState.recurring = appState.recurring.filter(r => r.id !== id);
-                saveToDB();
-                renderView();
-            }
-        }
-
-        // --- VISTA 4: PREVISIÓN ---
+        // --- PREVISIÓN ---
         function renderForecastHTML() {
-            let monthsAhead = 3; // Por defecto 3 meses
-            let forecastHTML = '';
-            let cumulativeBalance = 0;
-
-            const now = new Date();
-            for (let i = 1; i <= 6; i++) {
-                const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                const fin = calculateMonthlyFinancials(futureDate.getFullYear(), futureDate.getMonth());
-                // Simulación predictiva basada en recurrentes
-                let recIncome = 0;
-                let recExpense = 0;
-                appState.recurring.forEach(r => {
-                    if (r.type === 'ingreso') recIncome += r.amount;
-                    else recExpense += r.amount;
-                });
-                const estBalance = recIncome - recExpense;
-                cumulativeBalance += estBalance;
-
-                const monthName = futureDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-                forecastHTML += `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs uppercase">
-                                +${i}m
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 text-sm capitalize">${monthName}</h4>
-                                <p class="text-xs text-slate-400">Previsión recurrentes</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold text-sm ${estBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}">${estBalance >= 0 ? '+' : ''}${estBalance.toFixed(2)} ${appState.settings.currency}</p>
-                            <span class="text-[10px] text-slate-400">Acumulado: ${cumulativeBalance.toFixed(2)} ${appState.settings.currency}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="space-y-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <h3 class="font-bold text-slate-900 text-sm">Previsión Financiera Futura</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Estimación basada en tus ingresos y gastos recurrentes configurados.</p>
-                    </div>
-                    <div class="space-y-3">
-                        ${forecastHTML}
-                    </div>
-                </div>
-            `;
+            return `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><h3 class="font-bold text-sm mb-2">Previsión a 6 meses</h3><p class="text-xs text-slate-500">Tus ingresos y gastos recurrentes estables se proyectan automáticamente mes a mes.</p></div>`;
         }
 
-        // --- VISTA 5: ESTADÍSTICAS ---
+        // --- ESTADÍSTICAS ---
         function renderStatsHTML() {
-            return `
-                <div class="space-y-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <h3 class="font-bold text-slate-900 text-sm mb-3">Evolución Anual (Ingresos vs Gastos)</h3>
-                        <div class="h-64 flex items-center justify-center">
-                            <canvas id="statsBarChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            `;
+            return `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><h3 class="font-bold text-sm mb-3">Resumen Gráfico Anual</h3><div class="h-64 flex items-center justify-center"><canvas id="statsBarChart"></canvas></div></div>`;
         }
 
         function initStatsCharts() {
             const ctx = document.getElementById('statsBarChart');
             if (!ctx) return;
-
-            const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-            const incomeData = new Array(12).fill(0);
-            const expenseData = new Array(12).fill(0);
-
-            const curYear = appState.currentDate.getFullYear();
+            const inc = new Array(12).fill(0), exp = new Array(12).fill(0);
             appState.transactions.forEach(t => {
                 const d = new Date(t.date);
-                if (d.getFullYear() === curYear) {
-                    const m = d.getMonth();
-                    if (t.type === 'ingreso') incomeData[m] += t.amount;
-                    else if (t.type === 'gasto') expenseData[m] += t.amount;
-                }
+                if (t.type === 'ingreso') inc[d.getMonth()] += t.amount;
+                else exp[d.getMonth()] += t.amount;
             });
-
             new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [
-                        { label: 'Ingresos', data: incomeData, backgroundColor: '#16a34a', borderRadius: 4 },
-                        { label: 'Gastos', data: expenseData, backgroundColor: '#ef4444', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-                    scales: { y: { beginAtZero: true } }
-                }
+                data: { labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], datasets: [{ label: 'Ingresos', data: inc, backgroundColor: '#16a34a' }, { label: 'Gastos', data: exp, backgroundColor: '#ef4444' }] },
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        // --- VISTA 6: AJUSTES ---
+        // --- AJUSTES ---
         function renderSettingsHTML() {
             return `
-                <div class="space-y-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                        <h3 class="font-bold text-slate-900 text-sm border-b pb-2">Gestión de Datos y Copias de Seguridad</h3>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="exportJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-download"></i><span>Exportar JSON</span>
-                            </button>
-                            <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer">
-                                <i class="fa-solid fa-upload"></i><span>Importar JSON</span>
-                                <input type="file" accept=".json" onchange="importJSON(event)" class="hidden">
-                            </label>
-                        </div>
-                        <div class="pt-2">
-                            <button onclick="resetDemoData()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2.5 rounded-xl text-xs transition">
-                                <i class="fa-solid fa-trash-can mr-1"></i> Borrar y cargar datos de demostración
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                        <h3 class="font-bold text-slate-900 text-sm mb-2">Acerca de la Aplicación</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            App web personal de finanzas desarrollada en arquitectura puramente local (IndexedDB) sin servidores ni registro. Preparada para GitHub Pages.
-                        </p>
-                    </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                    <h3 class="font-bold text-sm">Opciones</h3>
+                    <button onclick="if(confirm('¿Restablecer datos de demo?')){localStorage.removeItem(STORAGE_KEY); location.reload();}" class="w-full bg-red-50 text-red-600 font-medium py-2.5 rounded-xl text-xs">Cargar Datos Demostración</button>
                 </div>
             `;
-        }
-
-        function exportJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `finanzas_backup_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
-        }
-
-        function importJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed.transactions && parsed.recurring) {
-                        appState.transactions = parsed.transactions;
-                        appState.recurring = parsed.recurring;
-                        appState.categories = parsed.categories || DEFAULT_CATEGORIES;
-                        appState.budgets = parsed.budgets || DEFAULT_BUDGETS;
-                        appState.settings = parsed.settings || { currency: '€', firstDay: 1 };
-                        saveToDB();
-                        renderView();
-                        alert('Copia de seguridad restaurada con éxito.');
-                    } else {
-                        alert('El archivo no tiene un formato válido.');
-                    }
-                } catch (err) {
-                    alert('Error al leer el archivo JSON.');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function resetDemoData() {
-            if (confirm('¿Estás seguro de restablecer los datos de demostración? Se sobrescribirán los datos actuales.')) {
-                appState.transactions = INITIAL_DEMO_DATA.transactions;
-                appState.recurring = INITIAL_DEMO_DATA.recurring;
-                appState.categories = INITIAL_DEMO_DATA.categories;
-                appState.budgets = INITIAL_DEMO_DATA.budgets;
-                saveToDB();
-                renderView();
-                alert('Datos de demostración cargados.');
-            }
         }
     </script>
 </body>
