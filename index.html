@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finanzas Personales</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js para estadísticas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 font-sans antialiased flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-500 text-white p-2 rounded-xl shadow-sm flex items-center justify-center w-10 h-10">
+                    <i class="fa-solid fa-wallet text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight text-slate-900">Mis Finanzas</h1>
+                    <p id="current-month-display" class="text-xs text-slate-500 capitalize">Cargando...</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="changeMonth(-1)" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="Mes anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button onclick="resetToCurrentMonth()" class="px-2.5 py-1 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">
+                    Hoy
+                </button>
+                <button onclick="changeMonth(1)" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="Mes siguiente">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main id="main-content" class="flex-1 max-w-4xl w-full mx-auto p-4 pb-28 overflow-y-auto">
+        <!-- Vistas dinámicas -->
+    </main>
+
+    <!-- BOTÓN FLOTANTE (+) -->
+    <button onclick="openTransactionModal()" class="fixed right-5 bottom-20 bg-brand-600 hover:bg-brand-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition transform hover:scale-105 active:scale-95 z-40 focus:outline-none" title="Añadir movimiento">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <!-- NAVEGACIÓN INFERIOR -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 shadow-lg">
+        <div class="max-w-4xl mx-auto flex justify-around py-2 px-1">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center flex-1 py-1 text-brand-600 transition">
+                <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Inicio</span>
+            </button>
+            <button onclick="switchTab('transactions')" id="nav-transactions" class="flex flex-col items-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-list-ul text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Movimientos</span>
+            </button>
+            <button onclick="switchTab('recurring')" id="nav-recurring" class="flex flex-col items-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-repeat text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Recurrentes</span>
+            </button>
+            <button onclick="switchTab('forecast')" id="nav-forecast" class="flex flex-col items-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-chart-line text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Previsión</span>
+            </button>
+            <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-chart-column text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Estadísticas</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center flex-1 py-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-gear text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Ajustes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODAL MOVIMIENTO MANUAL -->
+    <div id="transaction-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 id="modal-title" class="font-bold text-slate-900 text-lg">Nuevo Movimiento</h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="transaction-form" onsubmit="saveTransaction(event)" class="p-4 space-y-4 flex-1">
+                <input type="hidden" id="tx-id">
+                <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                    <button type="button" id="type-expense-btn" onclick="setTxType('gasto')" class="py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs">Gasto</button>
+                    <button type="button" id="type-income-btn" onclick="setTxType('ingreso')" class="py-2.5 rounded-lg font-medium text-sm transition text-slate-600">Ingreso</button>
+                </div>
+                <input type="hidden" id="tx-type" value="gasto">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Concepto</label>
+                    <input type="text" id="tx-concept" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Ej. Supermercado...">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Importe (€)</label>
+                        <input type="number" step="0.01" id="tx-amount" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha</label>
+                        <input type="date" id="tx-date" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría</label>
+                    <select id="tx-category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"></select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Notas (opcional)</label>
+                    <textarea id="tx-notes" rows="2" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Detalles..."></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition shadow-md">Guardar Movimiento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        const STORAGE_KEY = 'mis_finanzas_app_data_v1';
+
+        const DEFAULT_CATEGORIES = {
+            gasto: ['Vivienda', 'Alimentación', 'Transporte', 'Coche', 'Combustible', 'Seguros', 'Facturas', 'Suscripciones', 'Ocio', 'Compras', 'Salud', 'Educación', 'Impuestos', 'Viajes', 'Otros'],
+            ingreso: ['Nómina', 'Paga extra', 'Alquileres', 'Ventas', 'Devoluciones', 'Otros ingresos']
+        };
+
+        const DEFAULT_BUDGETS = {
+            'Alimentación': 400,
+            'Ocio': 150,
+            'Coche': 200,
+            'Vivienda': 750,
+            'Facturas': 150
+        };
+
+        const INITIAL_DEMO_DATA = {
+            transactions: [
+                { id: 't1', type: 'ingreso', concept: 'Nómina Empresa', amount: 2200, date: '2026-10-01', category: 'Nómina', notes: 'Mensual' },
+                { id: 't2', type: 'gasto', concept: 'Alquiler piso', amount: 700, date: '2026-10-02', category: 'Vivienda', notes: 'Cuota mensual' },
+                { id: 't3', type: 'gasto', concept: 'Supermercado', amount: 125.50, date: '2026-10-03', category: 'Alimentación', notes: 'Compra semanal' },
+                { id: 't4', type: 'gasto', concept: 'Gasolina', amount: 60, date: '2026-10-05', category: 'Combustible', notes: 'Depósito' },
+                { id: 't5', type: 'gasto', concept: 'Suscripciones', amount: 24.98, date: '2026-10-06', category: 'Suscripciones', notes: 'Mensual' }
+            ],
+            recurring: [
+                { id: 'r1', type: 'ingreso', concept: 'Nómina Principal', amount: 2200, category: 'Nómina', day: 1, startDate: '2025-01-01', periodicity: 'mensual', notes: 'Salario' },
+                { id: 'r2', type: 'gasto', concept: 'Alquiler Vivienda', amount: 700, category: 'Vivienda', day: 2, startDate: '2025-01-01', periodicity: 'mensual', notes: 'Alquiler' },
+                { id: 'r3', type: 'gasto', concept: 'Seguro del Coche', amount: 600, category: 'Seguros', day: 15, startDate: '2026-01-15', periodicity: 'anual', notes: 'Prorrateable 50€/mes' },
+                { id: 'r4', type: 'gasto', concept: 'Factura Luz', amount: 300, category: 'Facturas', day: 20, startDate: '2026-01-20', periodicity: 'trimestral', notes: 'Prorrateable 100€/mes' }
+            ],
+            categories: DEFAULT_CATEGORIES,
+            budgets: DEFAULT_BUDGETS,
+            settings: { currency: '€' }
+        };
+
+        let appState = {
+            currentDate: new Date(),
+            currentTab: 'dashboard',
+            transactions: [],
+            recurring: [],
+            categories: DEFAULT_CATEGORIES,
+            budgets: DEFAULT_BUDGETS,
+            settings: { currency: '€' }
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState.transactions = parsed.transactions || INITIAL_DEMO_DATA.transactions;
+                    appState.recurring = parsed.recurring || INITIAL_DEMO_DATA.recurring;
+                    appState.categories = parsed.categories || DEFAULT_CATEGORIES;
+                    appState.budgets = parsed.budgets || DEFAULT_BUDGETS;
+                    appState.settings = parsed.settings || { currency: '€' };
+                } catch (e) {
+                    appState.transactions = INITIAL_DEMO_DATA.transactions;
+                    appState.recurring = INITIAL_DEMO_DATA.recurring;
+                }
+            } else {
+                appState.transactions = INITIAL_DEMO_DATA.transactions;
+                appState.recurring = INITIAL_DEMO_DATA.recurring;
+                appState.categories = INITIAL_DEMO_DATA.categories;
+                appState.budgets = INITIAL_DEMO_DATA.budgets;
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                transactions: appState.transactions,
+                recurring: appState.recurring,
+                categories: appState.categories,
+                budgets: appState.budgets,
+                settings: appState.settings
+            }));
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            checkAndGenerateRecurring();
+            renderView();
+        });
+
+        function switchTab(tab) {
+            appState.currentTab = tab;
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('text-brand-600');
+                btn.classList.add('text-slate-400');
+            });
+            const activeNav = document.getElementById(`nav-${tab}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-400');
+                activeNav.classList.add('text-brand-600');
+            }
+            renderView();
+        }
+
+        function changeMonth(delta) {
+            appState.currentDate.setMonth(appState.currentDate.getMonth() + delta);
+            renderView();
+        }
+
+        function resetToCurrentMonth() {
+            appState.currentDate = new Date();
+            renderView();
+        }
+
+        function renderView() {
+            updateMonthDisplay();
+            const container = document.getElementById('main-content');
+            container.innerHTML = '';
+
+            switch(appState.currentTab) {
+                case 'dashboard':
+                    container.innerHTML = renderDashboardHTML();
+                    initDashboardCharts();
+                    break;
+                case 'transactions':
+                    container.innerHTML = renderTransactionsHTML();
+                    break;
+                case 'recurring':
+                    container.innerHTML = renderRecurringHTML();
+                    break;
+                case 'forecast':
+                    container.innerHTML = renderForecastHTML();
+                    break;
+                case 'stats':
+                    container.innerHTML = renderStatsHTML();
+                    initStatsCharts();
+                    break;
+                case 'settings':
+                    container.innerHTML = renderSettingsHTML();
+                    break;
+            }
+        }
+
+        function updateMonthDisplay() {
+            const options = { month: 'long', year: 'numeric' };
+            document.getElementById('current-month-display').textContent = appState.currentDate.toLocaleDateString('es-ES', options);
+        }
+
+        function checkAndGenerateRecurring() {
+            const curYear = appState.currentDate.getFullYear();
+            const curMonth = appState.currentDate.getMonth();
+
+            appState.recurring.forEach(rec => {
+                const targetDate = new Date(curYear, curMonth, rec.day || 1);
+                const dateStr = targetDate.toISOString().split('T')[0];
+                const exists = appState.transactions.some(t => 
+                    t.concept === rec.concept && 
+                    t.date.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`)
+                );
+
+                if (!exists && targetDate >= new Date(rec.startDate)) {
+                    appState.transactions.push({
+                        id: 'auto_' + Math.random().toString(36).substring(2, 9),
+                        type: rec.type,
+                        concept: rec.concept,
+                        amount: rec.amount,
+                        date: dateStr,
+                        category: rec.category,
+                        notes: `Generado automáticamente`
+                    });
+                }
+            });
+            saveData();
+        }
+
+        function getFilteredTransactionsForMonth(year, month) {
+            return appState.transactions.filter(t => {
+                const d = new Date(t.date);
+                return d.getFullYear() === year && d.getMonth() === month;
+            });
+        }
+
+        function calculateMonthlyFinancials(year, month) {
+            const txs = getFilteredTransactionsForMonth(year, month);
+            let income = 0, expense = 0;
+            txs.forEach(t => {
+                if (t.type === 'ingreso') income += t.amount;
+                else if (t.type === 'gasto') expense += t.amount;
+            });
+
+            let monthlyProratedReserve = 0;
+            appState.recurring.forEach(r => {
+                if (r.type === 'gasto') {
+                    let eq = 0;
+                    if (r.periodicity === 'anual') eq = r.amount / 12;
+                    else if (r.periodicity === 'trimestral') eq = r.amount / 3;
+                    if (eq > 0) monthlyProratedReserve += eq;
+                }
+            });
+
+            const balance = income - expense;
+            const savings = balance > 0 ? balance : 0;
+            const savingsRate = income > 0 ? Math.max(0, (balance / income) * 100) : 0;
+            const availableMoney = income - expense - monthlyProratedReserve;
+
+            return { income, expense, balance, savings, savingsRate, monthlyProratedReserve, availableMoney };
+        }
+
+        // --- DASHBOARD ---
+        function renderDashboardHTML() {
+            const year = appState.currentDate.getFullYear();
+            const month = appState.currentDate.getMonth();
+            const fin = calculateMonthlyFinancials(year, month);
+            const prevFin = calculateMonthlyFinancials(new Date(year, month - 1, 1).getFullYear(), new Date(year, month - 1, 1).getMonth());
+            const diff = fin.balance - prevFin.balance;
+
+            return `
+                <div class="space-y-4">
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                        <p class="text-xs uppercase tracking-wider text-slate-400 font-medium">Balance del Mes</p>
+                        <h2 class="text-3xl font-bold mt-1 ${fin.balance >= 0 ? 'text-white' : 'text-red-400'}">${fin.balance.toFixed(2)} ${appState.settings.currency}</h2>
+                        <div class="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-2 gap-4 text-sm">
+                            <div><span class="text-xs text-slate-400 block">Disponible Real</span><span class="font-semibold text-emerald-400 text-base">${fin.availableMoney.toFixed(2)} ${appState.settings.currency}</span></div>
+                            <div><span class="text-xs text-slate-400 block">Reserva Prorrateo</span><span class="font-semibold text-amber-400 text-base">${fin.monthlyProratedReserve.toFixed(2)} ${appState.settings.currency}</span></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-emerald-600 text-xs font-semibold mb-1"><i class="fa-solid fa-arrow-trend-up"></i> INGRESOS</div><p class="text-xl font-bold">+${fin.income.toFixed(2)} ${appState.settings.currency}</p></div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-red-500 text-xs font-semibold mb-1"><i class="fa-solid fa-arrow-trend-down"></i> GASTOS</div><p class="text-xl font-bold">-${fin.expense.toFixed(2)} ${appState.settings.currency}</p></div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-blue-600 text-xs font-semibold mb-1"><i class="fa-solid fa-piggy-bank"></i> AHORRO</div><p class="text-xl font-bold">${fin.savings.toFixed(2)} ${appState.settings.currency}</p><span class="text-[10px] text-slate-500">${fin.savingsRate.toFixed(1)}% tasa</span></div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><div class="text-purple-600 text-xs font-semibold mb-1"><i class="fa-solid fa-chart-line"></i> VS MES ANT.</div><p class="text-xl font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}">${diff >= 0 ? '+' : ''}${diff.toFixed(2)}</p></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <h3 class="font-bold text-slate-900 text-sm mb-3">Presupuestos por Categoría</h3>
+                        <div class="space-y-3">${renderBudgetsProgress(year, month)}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <h3 class="font-bold text-slate-900 text-sm mb-3">Distribución de Gastos</h3>
+                        <div class="h-48 flex items-center justify-center"><canvas id="dashboardChart"></canvas></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBudgetsProgress(year, month) {
+            const txs = getFilteredTransactionsForMonth(year, month);
+            const spentMap = {};
+            txs.filter(t => t.type === 'gasto').forEach(t => spentMap[t.category] = (spentMap[t.category] || 0) + t.amount);
+            
+            return Object.entries(appState.budgets).map(([cat, limit]) => {
+                const spent = spentMap[cat] || 0;
+                const pct = Math.min(100, (spent / limit) * 100);
+                const color = pct >= 100 ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-brand-500';
+                return `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="font-medium">${cat}</span><span class="text-slate-500">${spent.toFixed(2)} / ${limit} ${appState.settings.currency}</span></div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="${color} h-2 rounded-full transition-all" style="width: ${pct}%"></div></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function initDashboardCharts() {
+            const ctx = document.getElementById('dashboardChart');
+            if (!ctx) return;
+            const txs = getFilteredTransactionsForMonth(appState.currentDate.getFullYear(), appState.currentDate.getMonth()).filter(t => t.type === 'gasto');
+            const dataMap = {};
+            txs.forEach(t => dataMap[t.category] = (dataMap[t.category] || 0) + t.amount);
+            if (Object.keys(dataMap).length === 0) { ctx.parentElement.innerHTML = '<p class="text-xs text-slate-400">Sin gastos este mes.</p>'; return; }
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: Object.keys(dataMap), datasets: [{ data: Object.values(dataMap), backgroundColor: ['#16a34a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+        }
+
+        // --- MOVIMIENTOS ---
+        let txFilter = 'todos';
+        function renderTransactionsHTML() {
+            const txs = getFilteredTransactionsForMonth(appState.currentDate.getFullYear(), appState.currentDate.getMonth())
+                .filter(t => txFilter === 'todos' || t.type === txFilter);
+            return `
+                <div class="space-y-4">
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex gap-2">
+                        <button onclick="setTxFilter('todos')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${txFilter === 'todos' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}">Todos</button>
+                        <button onclick="setTxFilter('ingreso')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${txFilter === 'ingreso' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}">Ingresos</button>
+                        <button onclick="setTxFilter('gasto')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${txFilter === 'gasto' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600'}">Gastos</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100">
+                        ${txs.length === 0 ? '<div class="p-8 text-center text-slate-400 text-sm">No hay movimientos.</div>' : txs.map(t => `
+                            <div class="p-3.5 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${t.type === 'ingreso' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'}"><i class="fa-solid ${t.type === 'ingreso' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i></div>
+                                    <div>
+                                        <h4 class="font-bold text-sm">${t.concept}</h4>
+                                        <p class="text-xs text-slate-400"><span class="bg-slate-100 px-1.5 py-0.5 rounded">${t.category}</span> •${t.date}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="font-bold text-sm ${t.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">${t.type === 'ingreso' ? '+' : '-'}${t.amount.toFixed(2)}${appState.settings.currency}</span>
+                                    <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function setTxFilter(f) { txFilter = f; renderView(); }
+
+        function openTransactionModal() {
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            setTxType('gasto');
+        }
+
+        function closeTransactionModal() { document.getElementById('transaction-modal').classList.add('hidden'); }
+
+        function setTxType(type) {
+            document.getElementById('tx-type').value = type;
+            document.getElementById('type-expense-btn').className = type === 'gasto' ? 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs' : 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
+            document.getElementById('type-income-btn').className = type === 'ingreso' ? 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-emerald-600 shadow-xs' : 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
+            document.getElementById('tx-category').innerHTML = (appState.categories[type] || []).map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function saveTransaction(e) {
+            e.preventDefault();
+            appState.transactions.push({
+                id: 'tx_' + Math.random().toString(36).substring(2, 9),
+                type: document.getElementById('tx-type').value,
+                concept: document.getElementById('tx-concept').value,
+                amount: parseFloat(document.getElementById('tx-amount').value),
+                date: document.getElementById('tx-date').value,
+                category: document.getElementById('tx-category').value,
+                notes: document.getElementById('tx-notes').value
+            });
+            saveData();
+            closeTransactionModal();
+            renderView();
+        }
+
+        function deleteTransaction(id) {
+            if (confirm('¿Eliminar movimiento?')) {
+                appState.transactions = appState.transactions.filter(t => t.id !== id);
+                saveData();
+                renderView();
+            }
+        }
+
+        // --- RECURRENTES ---
+        function renderRecurringHTML() {
+            return `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">Recurrentes y Prorrateos</h3>
+                            <p class="text-xs text-slate-500">Gestiona tus ingresos y gastos fijos</p>
+                        </div>
+                        <button onclick="openRecurringModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-xs">
+                            <i class="fa-solid fa-plus mr-1"></i> Nuevo
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100">
+                        ${appState.recurring.length === 0 ? '<div class="p-8 text-center text-slate-400 text-sm">No hay elementos recurrentes.</div>' : appState.recurring.map(r => `
+                            <div class="p-4 flex items-center justify-between">
+                                <div><h4 class="font-bold text-sm">${r.concept}</h4><p class="text-xs text-slate-400">Día ${r.day} •${r.periodicity} • <span class="text-slate-600">${r.category}</span></p></div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="font-bold text-sm ${r.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-900'}">${r.type === 'ingreso' ? '+' : '-'}${r.amount.toFixed(2)}${appState.settings.currency}</span>
+                                    <button onclick="deleteRecurring('${r.id}')" class="text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- MODAL RECURRENTE -->
+                <div id="recurring-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                            <h3 class="font-bold text-slate-900 text-lg">Nuevo Recurrente</h3>
+                            <button onclick="closeRecurringModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg"><i class="fa-solid fa-xmark text-xl"></i></button>
+                        </div>
+                        <form onsubmit="saveRecurring(event)" class="p-4 space-y-4 flex-1">
+                            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                                <button type="button" id="rec-type-gasto" onclick="setRecType('gasto')" class="py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs">Gasto</button>
+                                <button type="button" id="rec-type-ingreso" onclick="setRecType('ingreso')" class="py-2.5 rounded-lg font-medium text-sm transition text-slate-600">Ingreso</button>
+                            </div>
+                            <input type="hidden" id="rec-type" value="gasto">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Concepto</label>
+                                <input type="text" id="rec-concept" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Ej. Seguro, Alquiler...">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Importe (€)</label>
+                                    <input type="number" step="0.01" id="rec-amount" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Día del mes</label>
+                                    <input type="number" min="1" max="31" id="rec-day" value="1" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría</label>
+                                    <select id="rec-category" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Periodicidad</label>
+                                    <select id="rec-periodicity" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                        <option value="mensual">Mensual</option>
+                                        <option value="trimestral">Trimestral</option>
+                                        <option value="anual">Anual</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="pt-2">
+                                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition shadow-md">Guardar Recurrente</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openRecurringModal() {
+            document.getElementById('recurring-modal').classList.remove('hidden');
+            setRecType('gasto');
+        }
+
+        function closeRecurringModal() {
+            document.getElementById('recurring-modal').classList.add('hidden');
+        }
+
+        function setRecType(type) {
+            document.getElementById('rec-type').value = type;
+            document.getElementById('rec-type-gasto').className = type === 'gasto' ? 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-red-600 shadow-xs' : 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
+            document.getElementById('rec-type-ingreso').className = type === 'ingreso' ? 'py-2.5 rounded-lg font-medium text-sm transition bg-white text-emerald-600 shadow-xs' : 'py-2.5 rounded-lg font-medium text-sm transition text-slate-600';
+            document.getElementById('rec-category').innerHTML = (appState.categories[type] || []).map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function saveRecurring(e) {
+            e.preventDefault();
+            appState.recurring.push({
+                id: 'rec_' + Math.random().toString(36).substring(2, 9),
+                type: document.getElementById('rec-type').value,
+                concept: document.getElementById('rec-concept').value,
+                amount: parseFloat(document.getElementById('rec-amount').value),
+                day: parseInt(document.getElementById('rec-day').value),
+                category: document.getElementById('rec-category').value,
+                periodicity: document.getElementById('rec-periodicity').value,
+                startDate: new Date().toISOString().split('T')[0]
+            });
+            saveData();
+            closeRecurringModal();
+            checkAndGenerateRecurring();
+            renderView();
+        }
+
+        function deleteRecurring(id) {
+            if (confirm('¿Eliminar elemento recurrente?')) {
+                appState.recurring = appState.recurring.filter(r => r.id !== id);
+                saveData();
+                renderView();
+            }
+        }
+
+        // --- PREVISIÓN ---
+        function renderForecastHTML() {
+            return `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><h3 class="font-bold text-sm mb-2">Previsión a 6 meses</h3><p class="text-xs text-slate-500">Tus ingresos y gastos recurrentes estables se proyectan automáticamente mes a mes.</p></div>`;
+        }
+
+        // --- ESTADÍSTICAS ---
+        function renderStatsHTML() {
+            return `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs"><h3 class="font-bold text-sm mb-3">Resumen Gráfico Anual</h3><div class="h-64 flex items-center justify-center"><canvas id="statsBarChart"></canvas></div></div>`;
+        }
+
+        function initStatsCharts() {
+            const ctx = document.getElementById('statsBarChart');
+            if (!ctx) return;
+            const inc = new Array(12).fill(0), exp = new Array(12).fill(0);
+            appState.transactions.forEach(t => {
+                const d = new Date(t.date);
+                if (t.type === 'ingreso') inc[d.getMonth()] += t.amount;
+                else exp[d.getMonth()] += t.amount;
+            });
+            new Chart(ctx, {
+                type: 'bar',
+                data: { labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], datasets: [{ label: 'Ingresos', data: inc, backgroundColor: '#16a34a' }, { label: 'Gastos', data: exp, backgroundColor: '#ef4444' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // --- AJUSTES ---
+        function renderSettingsHTML() {
+            return `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                    <h3 class="font-bold text-sm">Opciones</h3>
+                    <button onclick="if(confirm('¿Restablecer datos de demo?')){localStorage.removeItem(STORAGE_KEY); location.reload();}" class="w-full bg-red-50 text-red-600 font-medium py-2.5 rounded-xl text-xs">Cargar Datos Demostración</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
